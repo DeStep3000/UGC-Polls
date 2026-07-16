@@ -30,6 +30,7 @@ class Command(BaseCommand):
 
         with transaction.atomic():
             author, _ = user_model.objects.get_or_create(username=f"{prefix}_author")
+            # Пользователей создаем пачкой, чтобы не делать тысячи отдельных INSERT.
             users = [
                 user_model(username=f"{prefix}_user_{index}") for index in range(1, users_count + 1)
             ]
@@ -58,6 +59,7 @@ class Command(BaseCommand):
                     for number in range(1, questions_per_survey + 1)
                 )
             Question.objects.bulk_create(questions, batch_size=batch_size)
+            # После bulk_create перечитываем вопросы, чтобы стабильно получить id во всех БД.
             questions = list(
                 Question.objects.filter(survey__in=surveys).order_by("survey_id", "order")
             )
@@ -102,6 +104,7 @@ class Command(BaseCommand):
             user = users[index % len(users)]
             attempts.append(SurveyAttempt(survey=survey, user=user))
 
+        # ignore_conflicts нужен, если команду запускают повторно с тем же prefix.
         SurveyAttempt.objects.bulk_create(attempts, batch_size=batch_size, ignore_conflicts=True)
         attempts = list(
             SurveyAttempt.objects.filter(survey__in=surveys, user__in=users).order_by("id")[

@@ -20,6 +20,7 @@ def get_survey_structure(survey_id: int) -> list[dict]:
     if cached_structure is not None:
         return cached_structure
 
+    # Структура опроса одинаковая для всех пользователей, поэтому ее выгодно держать в Redis.
     options = AnswerOption.objects.order_by("order", "id")
     questions = (
         Question.objects.filter(survey_id=survey_id)
@@ -32,6 +33,7 @@ def get_survey_structure(survey_id: int) -> list[dict]:
 
 
 def get_next_question_from_cache(survey_id: int, answered_question_ids: set[int]) -> dict | None:
+    # Персональное состояние остается в БД, а из кеша берем только общий порядок вопросов.
     for question in get_survey_structure(survey_id):
         if question["id"] not in answered_question_ids:
             return question
@@ -44,6 +46,7 @@ def get_survey_stats(survey: Survey) -> dict:
     if cached_stats is not None:
         return cached_stats
 
+    # Статистика может быть тяжелее обычной выдачи вопроса, поэтому кешируем ее коротким TTL.
     completion_time = ExpressionWrapper(
         F("completed_at") - F("started_at"),
         output_field=DurationField(),
@@ -83,4 +86,5 @@ def get_survey_stats(survey: Survey) -> dict:
 
 
 def invalidate_survey_stats(survey_id: int) -> None:
+    # После нового ответа счетчики вариантов уже неактуальны, сбрасываем только статистику.
     cache.delete(survey_stats_cache_key(survey_id))

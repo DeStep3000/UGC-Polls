@@ -87,6 +87,7 @@ class NextQuestionView(APIView):
             answered_question_ids = set(
                 UserAnswer.objects.filter(attempt=attempt).values_list("question_id", flat=True)
             )
+            # Ответов в одном прохождении максимум 15, поэтому такой set маленький и быстрый.
             survey_structure = get_survey_structure(survey.id)
             question = get_next_question_from_cache(survey.id, answered_question_ids)
 
@@ -150,6 +151,7 @@ class AnswerQuestionView(APIView):
                     option=option,
                     time_spent_ms=data.get("time_spent_ms"),
                 )
+                # Новый ответ меняет статистику, но не меняет структуру опубликованного опроса.
                 invalidate_survey_stats(survey.id)
             except IntegrityError:
                 return Response(
@@ -271,6 +273,7 @@ class DemoDataView(APIView):
                 ]
             )
 
+            # В демо-опросе фиксируем размер из задания: 15 вопросов и 5 вариантов на вопрос.
             AnswerOption.objects.bulk_create(
                 [
                     AnswerOption(question=question, text=option_text, order=order)
