@@ -89,6 +89,7 @@ if os_environ.get("REDIS_HOST"):
     redis_host = os_environ.get("REDIS_HOST")
     redis_port = os_environ.get("REDIS_PORT", "6379")
     redis_db = os_environ.get("REDIS_DB", "0")
+    # В Docker используем Redis, чтобы поведение было ближе к реальному backend-стенду.
     CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
@@ -100,6 +101,7 @@ if os_environ.get("REDIS_HOST"):
         }
     }
 else:
+    # Для локальных pytest Redis не обязателен: Django подменит его in-memory кешем.
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",

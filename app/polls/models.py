@@ -59,6 +59,7 @@ class Question(models.Model):
         verbose_name = "question"
         verbose_name_plural = "questions"
         ordering = ["order", "id"]
+        # Один и тот же порядковый номер вопроса внутри опроса запрещен на уровне БД.
         constraints = [
             models.UniqueConstraint(fields=["survey", "order"], name="uniq_question_order")
         ]
@@ -84,6 +85,7 @@ class AnswerOption(models.Model):
         verbose_name = "answer option"
         verbose_name_plural = "answer options"
         ordering = ["order", "id"]
+        # Автор может менять порядок вариантов, но внутри вопроса он должен быть уникальным.
         constraints = [
             models.UniqueConstraint(fields=["question", "order"], name="uniq_option_order")
         ]
@@ -120,6 +122,7 @@ class SurveyAttempt(models.Model):
     class Meta:
         verbose_name = "survey attempt"
         verbose_name_plural = "survey attempts"
+        # В этой реализации пользователь проходит конкретный опрос только один раз.
         constraints = [
             models.UniqueConstraint(
                 fields=["survey", "user"],
@@ -166,6 +169,7 @@ class UserAnswer(models.Model):
     class Meta:
         verbose_name = "user answer"
         verbose_name_plural = "user answers"
+        # Один вопрос в одном прохождении нельзя закрыть двумя разными ответами.
         constraints = [
             models.UniqueConstraint(fields=["attempt", "question"], name="uniq_answer_question")
         ]
