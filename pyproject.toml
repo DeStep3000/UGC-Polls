@@ -1,0 +1,37 @@
+[project]
+name = "ugc-polls"
+version = "0.1.0"
+description = "Backend for UGC polls"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.2,<6",
+    "django-redis>=6.0,<7",
+    "djangorestframework>=3.15,<4",
+    "drf-spectacular>=0.28,<1",
+    "psycopg[binary,pool]>=3.2,<4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3,<9",
+    "pytest-django>=4.9,<5",
+    "ruff>=0.12,<1",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RET"]
+ignore = ["RET504"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+addopts = "-ra"
+pythonpath = ["app"]
+testpaths = ["app"]
+python_files = ["test_*.py", "*_test.py", "tests.py"]
